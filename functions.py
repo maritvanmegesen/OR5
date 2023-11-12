@@ -54,7 +54,7 @@ def calculate_penalty_cost(df: pd.DataFrame, schedule: dict):
 
 #CONSTRUCTIVE HEURISTIC IDEAL LINE ALGORITHM 
 
-def constructive_heuristic_ideal (df): 
+def constructive_heuristic_ideal (df: pd.DataFrame): 
     """
     arguments:
         df = dataframe of production times, deadlines & costs  
@@ -121,7 +121,7 @@ def constructive_heuristic_ideal (df):
 
 #CONSTRUCTIVE HEURISTIC RANDOM ALGORITHM
 
-def constructive_heuristic_random(df):
+def constructive_heuristic_random(df: pd.DataFrame):
     """
     arguments:
         df = dataframe of production times, deadlines & costs  
@@ -193,7 +193,7 @@ def improving_search(iterations: int, df: pd.DataFrame, initial_solution: dict):
     arguments:
         iterations = integer number of how many swwaps are going to be made 
         df = dataframe of production times, deadlines & costs  
-        solution = dictioanry of an initial line production solution 
+        initial_solution = dictioanry of an initial line production solution 
     
     outputs: 
         best_solution = solution achieved through improving search algorithm
@@ -201,6 +201,7 @@ def improving_search(iterations: int, df: pd.DataFrame, initial_solution: dict):
 
     for i in range(iterations):
         # Create a copy of the current initial solution
+        starting_solution = copy.deepcopy(initial_solution)
         best_solution = copy.deepcopy(initial_solution)
         best_penalty_cost = calculate_penalty_cost(df, best_solution)
 
@@ -231,7 +232,7 @@ def improving_search(iterations: int, df: pd.DataFrame, initial_solution: dict):
 
         #now check if improvement is made 
         if improvement_made:
-            initial_solution = best_solution
+            starting_solution = best_solution
         else:
             #no improvement or iterations ran out 
             break
@@ -253,19 +254,21 @@ def improving_search(iterations: int, df: pd.DataFrame, initial_solution: dict):
 
 #SIMULATED ANNEALING ALGORITHM
 
-def simulated_annealing(df: pd.DataFrame, initial_solution: dict, temperature, cooling_rate, iterations_per_temp: int):
+def simulated_annealing(df: pd.DataFrame, initial_solution: dict, temperature: int, cooling_rate: float, iterations_per_temp: int):
     """
     arguments: 
         df = dataframe of production times, deadlines & costs  
-        solution = dictionary of an initial line production solution 
+        initial_solution = dictionary of an initial line production solution 
         temperature = initial temperature 
         cooling_rate = value lower than 1 showing the rate at which the temperature cools
-        interations_per_temp = how many times you iterate at a given temperature (integer)
+        interations_per_temp = how many times you iterate at a given temperature
 
     outputs: 
         best_schedule = solution achieved through simulated annealing algorithm
     """
-    
+    if not 0 < cooling_rate < 1:
+        raise ValueError("Cooling rate must be a float between 0 and 1.")
+
     #initialize the current schedule and best schedule
     current_schedule = copy.deepcopy(initial_solution)
     best_schedule = copy.deepcopy(initial_solution)
@@ -317,7 +320,7 @@ def simulated_annealing(df: pd.DataFrame, initial_solution: dict, temperature, c
 
 #FUNCTION TO GENERATE THE DESIRED EXCEL FILE FORMAT
 
-def solution_excel(df, solution):
+def solution_excel(df: pd.DataFrame, solution: dict):
     """
     Arguments: 
         df = dataframe of production times, deadlines & costs  
