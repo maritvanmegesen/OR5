@@ -323,7 +323,7 @@ def solution_excel(df, solution):
     result_data = []
 
     # Populate the DataFrame with the relevant data
-    for line, products in Solution2.items():
+    for line, products in solution.items():
         current_time = 0
         for product in products:
             product_row = df[df['Product'] == product]
