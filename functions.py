@@ -308,6 +308,8 @@ def simulated_annealing(df, solution, temperature, cooling_rate, iterations_per_
 # sa = simulated_annealing(df, ips, 10, 0.99, 10)
 # print('Simulated annealing', sa)
 
+
+#export solution to excel 
 def solution_excel(df, solution):
     """
     Arguments: 
