@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import random 
 import copy
+import math
 random.seed(9)
 
 # # Load data from the file
@@ -215,6 +216,7 @@ def improving_search(iterations: int, df, solution: dict):
             #no improvement or iterations ran out 
             break
 
+    print("")
     print("Initial Solution:")
     for line, products in solution.items():
         print(f"{line}: {', '.join(products)}")
@@ -228,3 +230,125 @@ def improving_search(iterations: int, df, solution: dict):
     print("Final Best Penalty Cost:", best_penalty_cost)
 
     return best_solution 
+
+
+# Simulated annealing function
+def simulated_annealing(df, solution, temperature, cooling_rate, iterations_per_temp):
+    """
+    arguments: 
+        df = dataframe of production times, deadlines & costs  
+        solution = dictionary of an initial line production solution 
+        temperature = initial temperature 
+        cooling_rate = value lower than 1 showing the rate at which the temperature cools
+        interations_per_temp = how many times you iterate at a given temperature 
+
+    outputs: 
+        best_solution = solution achieved through simulated annealing algorithm
+    """
+    current_schedule = copy.deepcopy(solution)
+    best_solution = copy.deepcopy(solution)
+    current_cost = calculate_penalty_cost(df, current_schedule)
+    best_cost = current_cost
+
+    while temperature > 0.1:
+        for k in range(iterations_per_temp):
+            # Generate a neighboring solution by swapping two random cities
+            i, j = random.sample(list(current_schedule.keys()), 2)
+
+            # Use indexing to find items in the random lines and replace them in the original dictionary
+            item_index_i = random.randint(0, len(current_schedule[i]) - 1)
+            item_index_j = random.randint(0, len(current_schedule[j]) - 1)
+
+            # Swap the items
+            neighbor_schedule = copy.deepcopy(current_schedule)
+            neighbor_schedule[i][item_index_i], neighbor_schedule[j][item_index_j] = neighbor_schedule[j][item_index_j], neighbor_schedule[i][item_index_i]
+ 
+            #neighbor_schedule = current_schedule[:]
+            neighbor_cost = calculate_penalty_cost(df, neighbor_schedule)
+
+            # Decide whether to accept the neighbor solution
+            delta = neighbor_cost - current_cost
+            if delta < 0 or random.random() < 2.7182**(-delta / temperature):
+                current_schedule = neighbor_schedule
+                current_cost = neighbor_cost
+
+                # Update the best solution if necessary
+                if current_cost < best_cost:
+                    best_solution = current_schedule
+                    best_cost = current_cost
+
+        # Cool the temperature
+        temperature *= cooling_rate
+
+
+    print("Initial Solution:")
+    for line, products in solution.items():
+        print(f"{line}: {', '.join(products)}")
+    print("Initial Penalty Cost:", calculate_penalty_cost(df, solution))
+
+    print("")
+
+    print("Final Best Solution:")
+    for line, products in best_solution.items():
+        print(f"{line}: {', '.join(products)}")
+    print("Final Best Penalty Cost:", best_cost)
+
+    return best_solution
+
+# df=pd.read_excel('Line Production December 2023.xlsx')
+
+# ch = constructive_heuristic_random(df)
+# print('Constructive search', ch)
+# print('')
+
+# ips = improving_search(20, df, ch)
+# print('Improving search', ips)
+# print('')
+
+# sa = simulated_annealing(df, ips, 10, 0.99, 10)
+# print('Simulated annealing', sa)
+
+def solution_excel(df, solution):
+    """
+    Arguments: 
+        df = dataframe of production times, deadlines & costs  
+        solution = dictionary of a solution
+
+    Output:
+        excel file of schedule with 8 columns: Product, Line, 
+        Start, Process Time, End, Deadline, Tardiness,Total Penalty Cost. 
+    
+    """
+    # Create a new DataFrame with the required columns
+    result_data = []
+
+    # Populate the DataFrame with the relevant data
+    for line, products in Solution2.items():
+        current_time = 0
+        for product in products:
+            product_row = df[df['Product'] == product]
+            processing_time = product_row[line].values[0]
+            deadline = product_row['deadline'].values[0]
+            lateness = current_time + processing_time - deadline
+            cost_penalty = product_row['penalty cost'].values[0]
+            total_penalty_cost = max(0, lateness) * product_row['penalty cost'].values[0]
+
+            result_data.append({
+                "Product": product,
+                "Line": line,
+                "Start": current_time,
+                "Process Time": processing_time,
+                "End": current_time + processing_time,
+                "Deadline": deadline,
+                "Tardiness": max(0, lateness),
+                "Penalty Cost Per Hour": cost_penalty, 
+                "Total Penalty Cost": total_penalty_cost
+            })
+
+            current_time += processing_time
+
+    # Convert the list of dictionaries to a DataFrame
+    result_df = pd.DataFrame(result_data)
+    #.to_excel("OR5: Final Schedule Month 2023")
+
+    return result_df
